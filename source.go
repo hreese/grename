@@ -7,8 +7,8 @@ import (
 )
 
 // MakeSourceFromStrings returns a Source for []string-arrays like argv
-func MakeSourceFromStrings(instrings []string) Source {
-	return func() chan<- Renamed {
+func MakeSourceFromStrings(instrings ...string) Source {
+	return func() <-chan Renamed {
 		outC := make(chan Renamed)
 		go func() {
 			for _, instring := range instrings {
@@ -24,7 +24,7 @@ func MakeSourceFromStrings(instrings []string) Source {
 // (like os.Stdin). String separation is determined by splitFunc (bufio.Scanlines
 // and ScanNUL).
 func MakeSourceFromScanner(input io.Reader, splitFunc bufio.SplitFunc) Source {
-	return func() chan<- Renamed {
+	return func() <-chan Renamed {
 		outC := make(chan Renamed)
 		go func() {
 			scanner := bufio.NewScanner(input)
