@@ -1,20 +1,22 @@
 package grename
 
 import (
-    "bytes"
 	"bufio"
+	"bytes"
 	"io"
 )
 
 // MakeSourceFromStrings returns a Source for []string-arrays like argv
 func MakeSourceFromStrings(instrings []string) Source {
-	return func(outC chan<- string) {
+	return func() chan<- Renamed {
+		outC := make(chan Renamed)
 		go func() {
 			for _, instring := range instrings {
-				outC <- instring
+				outC <- Renamed{instring, instring}
 			}
 			close(outC)
 		}()
+		return outC
 	}
 }
 
@@ -22,15 +24,18 @@ func MakeSourceFromStrings(instrings []string) Source {
 // (like os.Stdin). String separation is determined by splitFunc (bufio.Scanlines
 // and ScanNUL).
 func MakeSourceFromScanner(input io.Reader, splitFunc bufio.SplitFunc) Source {
-	return func(outC chan<- string) {
+	return func() chan<- Renamed {
+		outC := make(chan Renamed)
 		go func() {
 			scanner := bufio.NewScanner(input)
 			scanner.Split(splitFunc)
 			for scanner.Scan() {
-				outC <- scanner.Text()
+                token := scanner.Text()
+				outC <- Renamed{token, token}
 			}
 			close(outC)
 		}()
+		return outC
 	}
 }
 

@@ -29,16 +29,16 @@ func MakeRE2Renamer(match, subst string) (StringRenamer, error) {
 }
 
 func MakeFilenameFilter(sr StringRenamer) Filter {
-	return func(outC <-chan string, inC chan<- string) {
+	return func(inC <-chan Renamed) chan<- Renamed {
+		outC := make(chan Renamed)
 		go func() {
-			for _, filename := range inC {
-				// split filename
-				dir, file := filepath.Split(filename)
-				// rename filepart
+			for filename := range inC {
+				dir, file := filepath.Split(filename.renamed)
 				newFilename := sr(file)
-				outC <- filepath.Join(dir, newFilename)
+				outC <- Renamed{filename.original, filepath.Join(dir, newFilename)}
 			}
 			close(outC)
 		}()
+		return outC
 	}
 }
