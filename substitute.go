@@ -1,6 +1,7 @@
 package grename
 
 import (
+	"path/filepath"
 	"regexp"
 )
 
@@ -25,4 +26,19 @@ func MakeRE2Renamer(match, subst string) (StringRenamer, error) {
 	return func(input string) string {
 		return matchRE.ReplaceAllString(input, subst)
 	}, nil
+}
+
+func MakeFilenameFilter(sr StringRenamer) Filter {
+	return func(outC <-chan string, inC chan<- string) {
+		go func() {
+			for _, filename := range inC {
+				// split filename
+				dir, file := filepath.Split(filename)
+				// rename filepart
+				newFilename := sr(file)
+				outC <- filepath.Join(dir, newFilename)
+			}
+			close(outC)
+		}()
+	}
 }
