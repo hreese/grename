@@ -21,8 +21,8 @@ func MakeSourceFromStrings(instrings ...string) Source {
 }
 
 // MakeSourceFromStrings returns a Source for strings read from an io.Reader
-// (like os.Stdin). String separation is determined by splitFunc (bufio.Scanlines
-// and ScanNUL).
+// (like os.Stdin). String separation is determined by a splitFunc like 
+// bufio.Scanlines or ScanNUL.
 func MakeSourceFromScanner(input io.Reader, splitFunc bufio.SplitFunc) Source {
 	return func() <-chan Renamed {
 		outC := make(chan Renamed)
