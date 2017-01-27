@@ -1,11 +1,10 @@
 package grename
 
-type Renamed struct {
-    Original string
-    Renamed string
+type Filter func(string) string
+
+type FileRenameOp struct {
+	OldName string
+	NewName string
 }
 
-type Source func() <-chan Renamed
-type Filter func(<-chan Renamed) <-chan Renamed
-type Sink   func(<-chan Renamed)
-
+type Sink chan FileRenameOp

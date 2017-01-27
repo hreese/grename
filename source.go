@@ -6,37 +6,49 @@ import (
 	"io"
 )
 
+const (
+	defaultQueueLength = 64
+)
+
 // MakeSourceFromStrings returns a Source for []string-arrays like argv
-func MakeSourceFromStrings(instrings ...string) Source {
-	return func() <-chan Renamed {
-		outC := make(chan Renamed)
-		go func() {
-			for _, instring := range instrings {
-				outC <- Renamed{instring, instring}
-			}
-			close(outC)
-		}()
-		return outC
+func MakeSourceFromStrings(inStrings ...string) chan string {
+	var queueLen int
+
+	if len(inStrings) < defaultQueueLength {
+		queueLen = len(inStrings)
+	} else {
+		queueLen = defaultQueueLength
 	}
+
+	source := make(chan string, queueLen)
+
+	go func() {
+		for _, s := range inStrings {
+			source <- s
+		}
+		close(source)
+	}()
+
+	return source
 }
 
-// MakeSourceFromStrings returns a Source for strings read from an io.Reader
-// (like os.Stdin). String separation is determined by a splitFunc like 
-// bufio.Scanlines or ScanNUL.
-func MakeSourceFromScanner(input io.Reader, splitFunc bufio.SplitFunc) Source {
-	return func() <-chan Renamed {
-		outC := make(chan Renamed)
-		go func() {
-			scanner := bufio.NewScanner(input)
-			scanner.Split(splitFunc)
-			for scanner.Scan() {
-                token := scanner.Text()
-				outC <- Renamed{token, token}
-			}
-			close(outC)
-		}()
-		return outC
-	}
+// MakeSourceFromScanner returns a Source for strings read from an io.Reader
+// (like os.Stdin). String separation is determined by a splitFunc like
+// bufio.ScanLines or ScanNUL.
+func MakeSourceFromScanner(input io.Reader, splitFunc bufio.SplitFunc) chan string {
+	source := make(chan string, defaultQueueLength)
+
+	go func() {
+		scanner := bufio.NewScanner(input)
+		scanner.Split(splitFunc)
+		for scanner.Scan() {
+			token := scanner.Text()
+			source <- token
+		}
+		close(source)
+	}()
+
+	return source
 }
 
 // ScanNUL tokenizes strings by splitting them at NUL bytes
