@@ -17,10 +17,8 @@ func TestMakeSinkToWriter(t *testing.T) {
 	result := "image.jpg -> image.jpg.test\nöäüß µ”¹²³¬¼ -> öäüß µ”¹²³¬¼.test\n      ->      .test\n/foo/bar/baz/bum -> /foo/bar/baz/bum.test\n"
 
 	for _, name := range tests {
-		s.Input <- FileRenameOp{name, name + ".test"}
+		s.Rename(name, name+".test")
 	}
-	close(s.Input)
-	<-s.Done
 
 	if buf.String() != result {
 		t.Error("Unexpected result")
