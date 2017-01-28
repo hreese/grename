@@ -17,7 +17,7 @@ func TestMakeSinkToWriter(t *testing.T) {
 	result := "image.jpg -> image.jpg.test\nöäüß µ”¹²³¬¼ -> öäüß µ”¹²³¬¼.test\n      ->      .test\n/foo/bar/baz/bum -> /foo/bar/baz/bum.test\n"
 
 	for _, name := range tests {
-		s.Rename(name, name+".test")
+		s(name, name+".test")
 	}
 
 	if buf.String() != result {
