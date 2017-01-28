@@ -5,6 +5,8 @@ import (
 	"regexp"
 )
 
+type Filter func(string) string
+
 // StringRenamer is a function that changes a string
 type StringRenamer func(string) string
 
@@ -28,17 +30,17 @@ func MakeRE2Renamer(match, subst string) (StringRenamer, error) {
 	}, nil
 }
 
+// MakeFilenameFilter renames only the last part of a filename that
+// may contain a path
 func MakeFilenameFilter(sr StringRenamer) Filter {
-	return func(inC <-chan Renamed) <-chan Renamed {
-		outC := make(chan Renamed)
-		go func() {
-			for filename := range inC {
-				dir, file := filepath.Split(filename.Renamed)
-				newFilename := sr(file)
-				outC <- Renamed{filename.Original, filepath.Join(dir, newFilename)}
-			}
-			close(outC)
-		}()
-		return outC
+	return func(input string) string {
+		// clean path
+		cleaned := filepath.Clean(input)
+
+		// find last element
+		base := filepath.Base(cleaned)
+		dir := filepath.Dir(cleaned)
+
+		return filepath.Join(dir, sr(base))
 	}
 }
