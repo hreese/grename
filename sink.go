@@ -5,6 +5,12 @@ import (
 	"os"
 )
 
+const (
+	FileOpCautious   = 1 << iota
+	FileOpSensible   = 1 << iota
+	FileOpAggressive = 1 << iota
+)
+
 type Sink func(string, string) error
 
 // MakeSinkToWriter returns a Sink that writes to io.Writer out with strings
@@ -21,28 +27,62 @@ func MakeSinkToWriter(out io.Writer, sepNames string, sepPairs string, skipIdent
 	}
 }
 
-var (
-	StdoutSink = MakeSinkToWriter(os.Stdout, " → ", "\n")
-	NULSink    = MakeSinkToWriter(os.Stdout, "\x00", "\x00")
-)
+type FatalErrorInputfileAccess struct {
+	StatError error
+}
 
-func MakeSinkFileRenamer() Sink {
-	return func(oldName string, newName string, overwriteDestination bool) error {
+func (e *FatalErrorInputfileAccess) Error() string {
+	return e.StatError.Error()
+}
+
+type FatalErrorOutputExists struct {
+	errormsg string
+}
+
+func (e *FatalErrorOutputExists) Error() string {
+	return e.errormsg
+}
+
+// MakeSinkFileRenamer returns a Sink that renames files
+func MakeSinkFileRenamer(fileOpMode int, dryrun bool) Sink {
+	return func(oldName string, newName string) error {
 		// skip equal names
 		if oldName == newName {
 			return nil
 		}
 
-		oldStat, err := os.Stat(oldName)
-		if err != nil {
-		} // TODO
-		newStat, err := os.Stat(newName)
-		// destination file exists
-		if err == nil {
-			if !overwriteDestination {
+		// check if input file exists and is a file
+		_, oldStatErr := os.Lstat(oldName)
+
+		if oldStatErr != nil {
+			switch fileOpMode {
+			case FileOpCautious:
+				return &FatalErrorInputfileAccess{oldStatErr}
+			case FileOpSensible, FileOpAggressive:
+				// TODO: logging
 				return nil
 			}
 		}
-		return os.Rename(oldName, newName)
+
+		// check if destination file exists
+		_, err := os.Stat(newName)
+		if err == nil {
+			switch fileOpMode {
+			case FileOpCautious:
+				return &FatalErrorOutputExists{"File " + newName + " already exists"}
+			case FileOpSensible:
+				// TODO: logging
+				return nil
+			}
+		}
+		// TODO handle non-file dest
+
+		if dryrun == true {
+            // TODO: logging
+			return nil
+		} else {
+            // TODO: logging
+			return os.Rename(oldName, newName)
+		}
 	}
 }

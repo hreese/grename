@@ -11,7 +11,7 @@ const (
 )
 
 // MakeSourceFromStrings returns a Source for []string-arrays like argv
-func MakeSourceFromStrings(inStrings ...string) chan string {
+func MakeSourceFromStrings(inStrings []string) chan string {
 	var queueLen int
 
 	if len(inStrings) < defaultQueueLength {
