@@ -92,9 +92,9 @@ func init() {
 
 	// build output sink
 	if opts["--out0"] == true {
-		sink = MakeSinkToWriter(os.Stdout, "\x00", "\x00", false)
+		sink = MakeSinkToWriter(os.Stdout, "\x00", "\x00", opts["--skip-same"].(bool))
 	} else if opts["--dry-run"] == true {
-		sink = MakeSinkToWriter(os.Stdout, " → ", "\n", false)
+		sink = MakeSinkToWriter(os.Stdout, " → ", "\n", opts["--skip-same"].(bool))
 	} else {
 		var mode int
 		if opts["--cautious"] == true {
