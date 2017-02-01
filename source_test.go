@@ -9,7 +9,7 @@ import (
 func TestMakeSourceFromStrings(t *testing.T) {
 	var (
 		inputSet = []string{"123", "µ", "X X    X", "", "\x00"}
-		source   = MakeSourceFromStrings(inputSet...)
+		source   = MakeSourceFromStrings(inputSet)
 		result   []string
 	)
 

@@ -11,13 +11,13 @@ func TestMakeSinkToWriter(t *testing.T) {
 		buf bytes.Buffer
 	)
 
-	s := MakeSinkToWriter(&buf, " -> ", "\n")
+	s := MakeSinkToWriter(&buf, " -> ", "\n", true)
 
 	tests := []string{"image.jpg", "öäüß µ”¹²³¬¼", "     ", "/foo/bar/baz/bum"}
 	result := "image.jpg -> image.jpg.test\nöäüß µ”¹²³¬¼ -> öäüß µ”¹²³¬¼.test\n      ->      .test\n/foo/bar/baz/bum -> /foo/bar/baz/bum.test\n"
 
 	for _, name := range tests {
-		s(name, name+".test", false)
+		s(name, name+".test")
 	}
 
 	if buf.String() != result {
