@@ -52,14 +52,21 @@ func init() {
 		switch err.(type) {
 		case *docopt.LanguageError:
 			fmt.Println("This should not happen, please report this to the author (docopt.LanguageError): ", err.Error())
-			os.Exit(64)
+			os.Exit(63)
 		case *docopt.UserError:
-			fmt.Println("Invalid options.", err.Error())
-			os.Exit(65)
+			fmt.Println("Invalid options. Did you supply MATCHRE and SUBST? Did you set contradicting options?", err.Error())
+			os.Exit(64)
+        default:
+            fmt.Println("Unknown error, please report this to the author", err.Error())
+            os.Exit(65)
 		}
 	}
 
-	//pp.Print(opts) // XXX
+    if len(opts) == 0 {
+        os.Exit(1)
+    }
+
+    //pp.Print(opts)
 
 	// build input source
 	if opts["-l"] == true || opts["-"] == true {
@@ -121,4 +128,5 @@ func main() {
 			os.Exit(130)
 		}
 	}
+    os.Exit(0)
 }
